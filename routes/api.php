@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\MethodController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\SummaryController;
 use App\Http\Controllers\Api\TypeController;
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -22,8 +23,18 @@ use Illuminate\Support\Facades\Route;
 Route::group([
     'middleware' => 'api',
 ], function () {
-    //Auth
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::group([
+        'prefix' => 'auth',
+    ], function () {
+        //Auth
+        Route::post('/login', [AuthController::class, 'login']);
+        Route::group([
+            'middleware' => 'auth:api',
+        ], function () {
+            Route::get('/user', [AuthController::class, 'user']);
+            Route::patch('/password', [AuthController::class, 'changePassword']);
+        });
+    });
     //Auth API
     Route::group([
         'middleware' => 'auth:api',

@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\User\PasswordRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -30,7 +32,7 @@ class AuthController extends Controller
         return $this->respondWithToken($this->guard()->refresh());
     }
 
-    public function me()
+    public function user()
     {
         return response()
             ->json(['data' => auth()->user(), 'status' => 'success']);
@@ -54,5 +56,19 @@ class AuthController extends Controller
     public function guard()
     {
         return Auth::guard('api');
+    }
+
+    public function changePassword(PasswordRequest $request)
+    {
+        $password = $request->get('password');
+        $user = $this->guard()->user();
+        if($user->update(['password' => Hash::make($password)]))
+        {
+            return response()
+                ->json(['status' => 'success']);
+        }
+
+        return response()
+            ->json(['status' => 'error'], 500);
     }
 }
