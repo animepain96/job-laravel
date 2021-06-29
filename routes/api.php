@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\JobController;
 use App\Http\Controllers\Api\MethodController;
 use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\SummaryController;
 use App\Http\Controllers\Api\TypeController;
 use App\Http\Controllers\Api\UserController;
@@ -47,8 +48,14 @@ Route::group([
         Route::resource('jobs', JobController::class);
         //Summary
         Route::get('/report-chart', [SummaryController::class, 'chartReport']);
+        Route::get('/unpaid-count', [SummaryController::class, 'unpaidCount']);
+        //Setting
+        Route::get('/unpaid-threshold', [SettingController::class, 'unpaidThreshold']);
+        Route::patch('/unpaid-threshold', [SettingController::class, 'updateUnpaidThreshold']);
         //Report
         Route::get('/report', [ReportController::class, 'index']);
+        //User
+        Route::get('/users', [UserController::class, 'index']);
     });
 });
 

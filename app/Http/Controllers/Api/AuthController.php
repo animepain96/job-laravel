@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\User\PasswordRequest;
+use http\Env\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
@@ -64,6 +65,7 @@ class AuthController extends Controller
         $user = $this->guard()->user();
         if($user->update(['password' => Hash::make($password)]))
         {
+            $this->refresh();
             return response()
                 ->json(['status' => 'success']);
         }

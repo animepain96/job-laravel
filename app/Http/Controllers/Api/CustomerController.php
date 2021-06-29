@@ -17,7 +17,8 @@ class CustomerController extends Controller
      */
     public function index()
     {
-        return Customer::all();
+        return Customer::with('jobs')
+            ->get();
     }
 
     /**
@@ -30,6 +31,7 @@ class CustomerController extends Controller
     {
         $data = $request->only('name');
         $customer = Customer::create($data);
+        $customer->load('jobs');
 
         if ($customer) {
             return response()->json(['status' => 'success', 'data' => $customer], 200);
@@ -47,10 +49,11 @@ class CustomerController extends Controller
      */
     public function update(CustomerRequest $request, $id)
     {
-        $data = $request->only('name');
+        $data = $request->only('field', 'value');
         $customer = Customer::find($id);
         if ($customer) {
-            if ($customer->update($data)) {
+            if ($customer->update([$data['field'] => $data['value']])) {
+                $customer->load('jobs');
                 return response()->json(['status' => 'success', 'data' => $customer]);
             }
 
