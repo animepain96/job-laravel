@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BackupController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\JobController;
 use App\Http\Controllers\Api\MethodController;
@@ -55,7 +56,17 @@ Route::group([
         //Report
         Route::get('/report', [ReportController::class, 'index']);
         //User
-        Route::get('/users', [UserController::class, 'index']);
+        Route::resource('users', UserController::class);
+        Route::post('/users/{id}/password', [UserController::class, 'resetPassword']);
+        //Backup
+        Route::group([
+            'prefix' => 'backups',
+        ], function () {
+            Route::get('/manual', [BackupController::class, 'manual']);
+            Route::get('/', [BackupController::class, 'index']);
+            Route::post('/', [BackupController::class, 'deleteBackup']);
+            Route::get('/download', [BackupController::class, 'download']);
+        });
     });
 });
 

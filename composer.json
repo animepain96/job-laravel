@@ -12,6 +12,7 @@
         "laravel/framework": "^8.40",
         "laravel/tinker": "^2.5",
         "laravel/ui": "^3.2",
+        "spatie/laravel-backup": "^6.16",
         "tymon/jwt-auth": "dev-develop"
     },
     "require-dev": {

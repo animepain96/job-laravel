@@ -11,8 +11,8 @@ class ReportController extends Controller
 {
     public function index(Request $request) {
         $now = Carbon::now();
-        $from = $request->has('from') ? Carbon::parse($request->get('from')) : Carbon::create($now->year, $now->month, 1);
-        $to = $request->has('to') ? Carbon::parse($request->get('to')) : Carbon::create($now->year, $now->month + 1, 1)->addDays(-1);
+        $from = $request->has('from') ? Carbon::createFromFormat('Y-m-d', $request->get('from')) : Carbon::create($now->year, $now->month, 1);
+        $to = $request->has('to') ? Carbon::createFromFormat('Y-m-d', $request->get('to')) : Carbon::create($now->year, $now->month + 1, 1)->addDays(-1);
         $customer = $request->get('customer');
         $method = $request->get('method');
         $type = $request->get('type');
