@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\Job;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 
 class SummaryController extends Controller
 {
@@ -15,8 +14,8 @@ class SummaryController extends Controller
         $now = Carbon::now();
         $months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
         $saleRevenues = Job::whereYear('start_date', $now->year)
-            ->selectRaw('sum(price) as revenue, month(start_date) as month')
-            ->groupByRaw('month(start_date)')
+            ->selectRaw('sum(price) as revenue, date_part("month", start_date) as month')
+            ->groupByRaw('date_part("month", start_date)')
             ->get();
 
         $data = [];
