@@ -7,8 +7,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -21,19 +19,16 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::all();
+        $user = auth('api')
+            ->user();
+        $users = User::when($user->isAdmin(), function ($query) use ($user) {
+            if (!$user->isSuperAdmin()) {
+                $query->whereRole('user');
+            }
+        })
+            ->get();
         return response()
             ->json(['data' => $users, 'status' => 'success']);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
     }
 
     /**
@@ -44,7 +39,7 @@ class UserController extends Controller
      */
     public function store(StoreUserRequest $request)
     {
-        $data = $request->only('name', 'email', 'password');
+        $data = $request->only('name', 'username', 'email', 'password');
         $data['password'] = Hash::make($data['password']);
 
         $user = User::create($data);
@@ -52,33 +47,11 @@ class UserController extends Controller
         if ($user) {
             $user->refresh();
             return response()
-                ->json(['data' => $user, 'status' => 'success']);
+                ->json(['data' => $user, 'status' => 'success', 'message' => 'The user was created successfully.']);
         }
 
         return response()
-            ->json(['status' => 'error']);
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param int $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param int $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
+            ->json(['status' => 'error', 'message' => 'There was an error. Please try again.'], 500);
     }
 
     /**
@@ -91,7 +64,14 @@ class UserController extends Controller
     public function update(UpdateUserRequest $request, $id)
     {
         $user = User::find($id);
-        if ($user) {
+
+        $authUser = auth('api')->user();
+
+        if ($user && $user->id !== 1) {
+            if ($request->get('field') === 'role' && !$authUser->isSuperAdmin()) {
+                return response()
+                    ->json(['status' => 'error'], 403);
+            }
             $data['field'] = $request->get('field');
             $data['value'] = $request->get('value');
             if ($user->update([$data['field'] => $data['value']])) {
@@ -103,10 +83,10 @@ class UserController extends Controller
 
             return response()
                 ->json(['status' => 'error'], 500);
-        }
 
-        return response()
-            ->json(['status' => 'error'], 404);
+            return response()
+                ->json(['status' => 'error'], 404);
+        }
     }
 
     /**
@@ -115,7 +95,8 @@ class UserController extends Controller
      * @param int $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public
+    function destroy($id)
     {
         if ($id != '1') {
             $user = User::find($id);
@@ -134,7 +115,8 @@ class UserController extends Controller
             ->json(['status' => 'error'], 404);
     }
 
-    public function resetPassword($id)
+    public
+    function resetPassword($id)
     {
         if ($id != '1') {
             $user = User::find($id);

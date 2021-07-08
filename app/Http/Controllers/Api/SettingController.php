@@ -3,40 +3,38 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Setting\IntValueRequest;
 use App\Models\Setting;
-use Hamcrest\Core\Set;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class SettingController extends Controller
 {
     public static function get($key, $type = 'string')
     {
-        $value = Setting::getValue($key)->value;
-        if($value) {
-            try {
-                if(settype($value, $type)) {
+        try {
+            $value = Setting::getValue($key)->value;
+            if ($value) {
+                if (settype($value, $type)) {
                     return $value;
                 }
-                return null;
-            } catch (\Exception $ex) {
-                Log::error($ex->getMessage());
-                return null;
             }
-        }
 
-        return null;
+            return null;
+        } catch (\Exception $ex) {
+            Log::error($ex->getMessage());
+            return null;
+        }
     }
 
     public static function set($key, $value)
     {
         $result = Setting::updateOrCreate([
             'key' => $key,
-        ],[
+        ], [
             'value' => $value,
         ]);
 
-        if($result) {
+        if ($result) {
             return true;
         }
 
@@ -50,11 +48,29 @@ class SettingController extends Controller
             ->json(['data' => $unpaidThreshold, 'status' => 'success']);
     }
 
-    public function updateUnpaidThreshold(Request $request)
+    public function updateUnpaidThreshold(IntValueRequest $request)
     {
-        $value = $request->get('unpaid_threshold');
-        if(self::set('unpaid_threshold', $value))
-        {
+        $value = $request->get('value');
+        if (self::set('unpaid_threshold', $value)) {
+            return response()
+                ->json(['status' => 'success', 'data' => $value]);
+        }
+
+        return response()
+            ->json(['status' => 'error']);
+    }
+
+    public function keepDays()
+    {
+        $keepDays = self::get('keep_days', 'int') ?? env('BACKUP_KEEP_DAYS');
+        return response()
+            ->json(['data' => $keepDays, 'status' => 'success']);
+    }
+
+    public function updateKeepDays(IntValueRequest $request)
+    {
+        $value = $request->get('value');
+        if (self::set('keep_days', $value)) {
             return response()
                 ->json(['status' => 'success', 'data' => $value]);
         }

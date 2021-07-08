@@ -53,18 +53,29 @@ Route::group([
         //Setting
         Route::get('/unpaid-threshold', [SettingController::class, 'unpaidThreshold']);
         Route::patch('/unpaid-threshold', [SettingController::class, 'updateUnpaidThreshold']);
+        Route::get('/keep-days', [SettingController::class, 'keepDays']);
+        Route::patch('/keep-days', [SettingController::class, 'updateKeepDays'])->middleware('super.admin');
         //Report
         Route::get('/report', [ReportController::class, 'index']);
         //User
-        Route::resource('users', UserController::class);
+        Route::group([
+            'prefix' => 'users',
+            'middleware' => 'admin',
+        ], function () {
+            Route::get('/', [UserController::class, 'index']);
+            Route::patch('/{id}', [UserController::class, 'update'])->middleware('super.admin');
+            Route::post('/', [UserController::class, 'store']);
+            Route::delete('/{id}', [UserController::class, 'destroy'])->middleware('super.admin');
+        });
         Route::post('/users/{id}/password', [UserController::class, 'resetPassword']);
         //Backup
         Route::group([
             'prefix' => 'backups',
+            'middleware' => 'admin',
         ], function () {
             Route::get('/manual', [BackupController::class, 'manual']);
             Route::get('/', [BackupController::class, 'index']);
-            Route::post('/', [BackupController::class, 'deleteBackup']);
+            Route::post('/delete', [BackupController::class, 'deleteBackup'])->middleware('super.admin');
             Route::get('/download', [BackupController::class, 'download']);
         });
     });

@@ -80,11 +80,11 @@ class BackupController extends Controller
             }
 
             return response()
-                ->json(['status' => 'error']);
+                ->json(['status' => 'error'], 500);
         }
 
         return response()
-            ->json(['status' => 'error']);
+            ->json(['status' => 'error'], 500);
     }
 
     public function download(DownloadBackupRequest $request)
