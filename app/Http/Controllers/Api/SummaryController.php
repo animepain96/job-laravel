@@ -7,6 +7,7 @@ use App\Models\Customer;
 use App\Models\Job;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use mysql_xdevapi\Exception;
 
 class SummaryController extends Controller
 {
@@ -41,15 +42,20 @@ class SummaryController extends Controller
 
     public function unpaidCount()
     {
-        $unpaidCustomers = Customer::leftJoin('Job', 'Job.CustomerID', '=', 'Customer.ID')
-            ->where('Job.Paid', false)
-            ->groupBy('Customer.ID')
-            ->havingRaw('sum(Job.Price) > ?', [SettingController::get('unpaid_threshold', 'int') ?? env('UNPAID_THRESHOLD')])
-            ->select('Customer.ID')
-            ->get();
+        try{
+            $unpaidCustomers = Customer::leftJoin('Job', 'Job.CustomerID', '=', 'Customer.ID')
+                ->where('Job.Paid', false)
+                ->groupBy('Customer.ID')
+                ->havingRaw('sum(Job.Price) > ?', [SettingController::get('unpaid_threshold', 'int') ?? env('UNPAID_THRESHOLD')])
+                ->select('Customer.ID')
+                ->get();
 
-        return response()
-            ->json(['data' => $unpaidCustomers->count(), 'status' => 'success']);
+            return response()
+                ->json(['data' => $unpaidCustomers->count(), 'status' => 'success']);
+        }
+        catch (\Exception $ex) {
+            dd($ex);
+        }
     }
 
 }
