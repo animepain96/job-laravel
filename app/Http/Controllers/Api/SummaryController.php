@@ -47,8 +47,9 @@ class SummaryController extends Controller
                 ->where('Job.Paid', false)
                 ->groupBy('Customer.ID')
                 ->havingRaw('sum(Job.Price) > ?', [SettingController::get('unpaid_threshold', 'int') ?? env('UNPAID_THRESHOLD')])
-                ->select('Customer.ID')
-                ->get();
+                ->select('Customer.ID');
+
+            dd($unpaidCustomers->toSql());
 
             return response()
                 ->json(['data' => $unpaidCustomers->count(), 'status' => 'success']);
