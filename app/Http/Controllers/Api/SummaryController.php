@@ -13,31 +13,36 @@ class SummaryController extends Controller
 {
     public function chartReport()
     {
-        $now = Carbon::now();
-        $months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-        $saleRevenues = Job::whereYear('StartDate', $now->year)
-            ->selectRaw('sum(Price) as revenue, extract(month from StartDate) as month') // month(StartDate) //extract(month from StartDate)
-            ->groupBy(DB::raw('extract(month from StartDate)')) //month(StartDate) //extract(month from StartDate)
-            ->get();
+        try{
+            $now = Carbon::now();
+            $months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            $saleRevenues = Job::whereYear('StartDate', $now->year)
+                ->selectRaw('sum(Price) as revenue, extract(month from StartDate) as month') // month(StartDate) //extract(month from StartDate)
+                ->groupBy(DB::raw('extract(month from StartDate)')) //month(StartDate) //extract(month from StartDate)
+                ->get();
 
-        $data = [];
+            $data = [];
 
-        foreach ($months as $index => $name) {
-            if ($saleRevenues->contains('month', $index + 1)) {
-                array_push($data, [
-                    'month' => $name,
-                    'revenue' => $saleRevenues->firstWhere('month', $index + 1)->revenue,
-                ]);
-            } else {
-                array_push($data, [
-                    'month' => $name,
-                    'revenue' => 0,
-                ]);
+            foreach ($months as $index => $name) {
+                if ($saleRevenues->contains('month', $index + 1)) {
+                    array_push($data, [
+                        'month' => $name,
+                        'revenue' => $saleRevenues->firstWhere('month', $index + 1)->revenue,
+                    ]);
+                } else {
+                    array_push($data, [
+                        'month' => $name,
+                        'revenue' => 0,
+                    ]);
+                }
             }
-        }
 
-        return response()
-            ->json(['data' => $data, 'status' => 'success']);
+            return response()
+                ->json(['data' => $data, 'status' => 'success']);
+        }
+        catch (\Exception $ex){
+            dd($ex);
+        }
     }
 
     public function unpaidCount()
