@@ -13,7 +13,7 @@ class CreateMethodsTable extends Migration
      */
     public function up()
     {
-        Schema::create('Method', function (Blueprint $table) {
+        Schema::create('JMethod', function (Blueprint $table) {
             $table->bigIncrements('ID');
             $table->string('Name');
             $table->timestamps();
@@ -28,6 +28,6 @@ class CreateMethodsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('Method');
+        Schema::dropIfExists('JMethod');
     }
 }

@@ -13,7 +13,7 @@ class CreateTypesTable extends Migration
      */
     public function up()
     {
-        Schema::create('Type', function (Blueprint $table) {
+        Schema::create('JType', function (Blueprint $table) {
             $table->bigIncrements('ID');
             $table->string('Name');
             $table->timestamps();
@@ -28,6 +28,6 @@ class CreateTypesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('Type');
+        Schema::dropIfExists('JType');
     }
 }
