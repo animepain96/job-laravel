@@ -42,19 +42,17 @@ class SummaryController extends Controller
 
     public function unpaidCount()
     {
-        try{
+        try {
             $unpaidCustomers = Customer::leftJoin('Job', 'Job.CustomerID', '=', 'Customer.ID')
                 ->where('Job.Paid', false)
                 ->groupBy('Customer.ID')
-                ->havingRaw('sum(Job.Price) > ?', [SettingController::get('unpaid_threshold', 'int') ?? env('UNPAID_THRESHOLD')])
-                ->select('Customer.ID');
-
-            dd($unpaidCustomers->toSql());
+                ->havingRaw('sum("Job"."Price") > ?', [SettingController::get('unpaid_threshold', 'int') ?? env('UNPAID_THRESHOLD')])
+                ->select('Customer.ID')
+                ->get();
 
             return response()
                 ->json(['data' => $unpaidCustomers->count(), 'status' => 'success']);
-        }
-        catch (\Exception $ex) {
+        } catch (\Exception $ex) {
             dd($ex);
         }
     }
