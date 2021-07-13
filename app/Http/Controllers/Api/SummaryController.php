@@ -7,7 +7,6 @@ use App\Models\Customer;
 use App\Models\Job;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use mysql_xdevapi\Exception;
 
 class SummaryController extends Controller
 {

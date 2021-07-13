@@ -50,14 +50,18 @@ class SettingController extends Controller
 
     public function updateUnpaidThreshold(IntValueRequest $request)
     {
-        $value = $request->get('value');
-        if (self::set('unpaid_threshold', $value)) {
-            return response()
-                ->json(['status' => 'success', 'data' => $value]);
-        }
+        try{
+            $value = $request->get('value');
+            if (self::set('unpaid_threshold', $value)) {
+                return response()
+                    ->json(['status' => 'success', 'data' => $value]);
+            }
 
-        return response()
-            ->json(['status' => 'error']);
+            return response()
+                ->json(['status' => 'error']);
+        } catch (\Exception $ex) {
+            dd($ex);
+        }
     }
 
     public function keepDays()
