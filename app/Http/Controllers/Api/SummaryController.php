@@ -15,8 +15,8 @@ class SummaryController extends Controller
         $now = Carbon::now();
         $months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
         $saleRevenues = Job::whereYear('StartDate', $now->year)
-            ->selectRaw('sum(Price) as revenue, month(StartDate) as month') // month(StartDate) //extract(month from StartDate)
-            ->groupBy(DB::raw('month(StartDate)')) //month(StartDate) //extract(month from StartDate)
+            ->selectRaw('sum(Price) as revenue, extract(month from StartDate) as month') // month(StartDate) //extract(month from StartDate)
+            ->groupBy(DB::raw('extract(month from StartDate)')) //month(StartDate) //extract(month from StartDate)
             ->get();
 
         $data = [];
