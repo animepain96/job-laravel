@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -17,7 +18,7 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = auth('api')
             ->user();
@@ -26,7 +27,23 @@ class UserController extends Controller
                 $query->whereRole('user');
             }
         })
-            ->get();
+            ->when($request->has('q'), function ($query) use ($request) {
+                $query->where(function ($where) use ($request) {
+                    $where->orWhere('name', 'like', '%'.$request->get('q').'%')
+                        ->orWhere('email', 'like', '%'.$request->get('q').'%');
+                });
+            })
+            ->when($request->has('order'), function ($query) use ($request) {
+                $order = json_decode($request->get('order'));
+                $asc = $order->asc ?? false;
+                $column = $order->column ?? 'id';
+                $query->orderBy($column, $asc ? 'asc' : 'desc');
+            })
+            ->when(!$request->has('order'), function ($query) {
+                $query->orderBy('id', 'desc');
+            })
+            ->paginate($request->get('per_page') ?? 10 , ['*'], 'page', $request->get('page') ?? 1);
+
         return response()
             ->json(['data' => $users, 'status' => 'success']);
     }

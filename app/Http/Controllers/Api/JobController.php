@@ -19,18 +19,47 @@ class JobController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $jobs = Job::with([
-            'customer' => function ($query) {
-                $query->withTrashed();
-            }, 'type' => function ($query) {
-                $query->withTrashed();
-            }, 'method' => function ($query) {
-                $query->withTrashed();
-            }
-        ])
-            ->get();
+        $jobs = Job::with(
+            [
+                'customer' => function ($query) {
+                    $query->withTrashed();
+                },
+                'type' => function ($query) {
+                    $query->withTrashed();
+                },
+                'method' => function ($query) {
+                    $query->withTrashed();
+                }
+            ]
+        )
+            ->when($request->has('q') && !empty($request->get('q')), function ($query) use ($request) {
+                $query->where(function ($orWhere) use ($request) {
+                    $orWhere->orWhere('Name', 'like', '%' . $request->get('q') . '%')
+                        ->orWhere('Note', 'like', '%' . $request->get('q') . '%')
+                        ->orWhereHas('customer', function ($customer) use ($request) {
+                            $customer->where('Name', 'like', '%' . $request->get('q') . '%');
+                        })
+                        ->orWhereHas('method', function ($method) use ($request) {
+                            $method->where('Name', 'like', '%' . $request->get('q') . '%');
+                        })
+                        ->orWhereHas('type', function ($type) use ($request) {
+                            $type->where('Name', 'like', '%' . $request->get('q') . '%');
+                        });
+                });
+            })
+            ->when($request->has('order'), function ($query) use ($request) {
+                $order = json_decode($request->get('order'));
+                $asc = $order->asc ?? false;
+                $column = $order->column ?? 'ID';
+                $query->orderBy($column, $asc ? 'asc' : 'desc');
+            })
+            ->when(!$request->has('order'), function ($query) use ($request) {
+                $query->orderBy('ID', 'desc');
+            })
+            ->latest()
+            ->paginate($request->get('per_page') ?? 10, ['*'], 'page', $request->get('page') ?? 1);
         return response()->json(['status' => 'success', 'data' => $jobs]);
     }
 
@@ -53,8 +82,10 @@ class JobController extends Controller
         unset($data['Customer'], $data['Type'], $data['Method']);
 
         $rate = $this->fetchRate();
-        if ($rate) {
+        if ($rate > 0) {
             $data['Price'] = round((1 / $rate) * $data['PriceYen']);
+        } else {
+            return response()->json(['status' => 'error', 'message' => 'Could not get rate from server.'], 500);
         }
 
         if ($job = Job::create($data)) {
@@ -172,5 +203,18 @@ class JobController extends Controller
             return response()->json(['status' => 'success', 'data' => $rate]);
         }
         return response()->json(['status' => 'error']);
+    }
+
+    public function monthlyRevenue()
+    {
+        $now = Carbon::now();
+        $monthlyRevenue = Job::whereMonth('StartDate', $now->month)
+            ->whereYear('StartDate', $now->year)
+            ->selectRaw('sum("Price") as price, sum("PriceYen") as price_yen')
+            ->get()
+            ->first();
+
+        return response()
+            ->json(['data' => $monthlyRevenue, 'status' => 'success']);
     }
 }

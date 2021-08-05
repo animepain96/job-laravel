@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 
 class BackupController extends Controller
 {
@@ -36,7 +37,7 @@ class BackupController extends Controller
         }
     }
 
-    public function index()
+    public function index(Request $request)
     {
         try {
             $backupFiles = Storage::allFiles('backups');

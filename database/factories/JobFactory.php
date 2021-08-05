@@ -12,8 +12,8 @@ $factory->define(Job::class, function (Faker $faker) {
         'StartDate' => $faker->dateTimeThisMonth,
         'RealJob' => true,
         'Deadline' => $faker->dateTimeThisMonth,
-        'Price' => $faker->numberBetween(100, 10000),
-        'PriceYen' => $faker->numberBetween(100, 10000),
+        'Price' => $price = $faker->numberBetween(100, 10000),
+        'PriceYen' => $price * 100,
         'Paydate' => $faker->dateTimeThisMonth,
         'FinishDate' => $faker->dateTimeThisMonth,
         'Paid' => $faker->boolean

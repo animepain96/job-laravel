@@ -33,6 +33,7 @@ Route::group([
         'middleware' => 'auth:api',
     ], function () {
         Route::get('/jobs/additions', 'Api\JobController@additions');
+        Route::get('/jobs/monthly-revenue', 'Api\JobController@monthlyRevenue');
         Route::get('/jobs/rate', 'Api\JobController@getRate');
         Route::resource('customers', 'Api\CustomerController');
         Route::resource('methods', 'Api\MethodController');
@@ -48,6 +49,7 @@ Route::group([
         Route::patch('/keep-days', 'Api\SettingController@updateKeepDays')->middleware('super.admin');
         //Report
         Route::get('/report', 'Api\ReportController@index');
+        Route::get('/report/revenue', 'Api\ReportController@totalRevenue');
         //User
         Route::group([
             'prefix' => 'users',

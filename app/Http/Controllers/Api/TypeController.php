@@ -14,9 +14,22 @@ class TypeController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $types = Type::all();
+        $types = Type::when($request->has('q'), function ($query) use ($request) {
+            $query->where('Name', 'like', '%' . $request->get('q') . '%');
+        })
+            ->when($request->has('order'), function ($query) use ($request) {
+                $order = json_decode($request->get('order'));
+                $asc = $order->asc ?? false;
+                $column = $order->column ?? 'ID';
+                $query->orderBy($column, $asc ? 'asc' : 'desc');
+            })
+            ->when(!$request->has('sorter'), function ($query) {
+                $query->orderBy('ID', 'desc');
+            })
+            ->paginate($request->get('per_page') ?? 10, ['*'], 'page', $request->get('page') ?? 1);
+
         return response()->json(['status' => 'success', 'data' => $types]);
     }
 

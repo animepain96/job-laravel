@@ -8,6 +8,7 @@ use App\Jobs\Backups\SendMailSuccessBackup;
 use App\Jobs\Backups\SendMailSuccessClean;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class BackupListener
@@ -23,6 +24,7 @@ class BackupListener
 
     public function onBackupFailed($events)
     {
+        \Log::info($events->exception->getMessage());
         $data['name'] = basename(storage_path($events->backupDestination->newestBackup()->path()));
         $data['exception'] = $events->exception->getMessage();
         $mailJob = new SendMailFailBackup($data);

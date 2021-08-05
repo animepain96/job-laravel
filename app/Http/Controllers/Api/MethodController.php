@@ -14,15 +14,30 @@ class MethodController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        return Method::all();
+        $methods = Method::when($request->has('q'), function ($query) use ($request) {
+            $query->where('Name', 'like', '%' . $request->get('q') . '%');
+        })
+            ->when($request->has('order'), function ($query) use ($request) {
+                $order = json_decode($request->get('order'));
+                $asc = $order->asc ?? false;
+                $column = $order->column ?? 'ID';
+                $query->orderBy($column, $asc ? 'asc' : 'desc');
+            })
+            ->when(!$request->has('sorter'), function ($query) {
+                $query->orderBy('ID', 'desc');
+            })
+            ->paginate($request->get('per_page') ?? 10, ['*'], 'page', $request->get('page') ?? 1);
+
+        return response()
+            ->json(['data' => $methods, 'status' => 'success']);
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
     public function store(MethodRequest $request)
@@ -40,8 +55,8 @@ class MethodController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     public function update(MethodRequest $request, $id)
@@ -62,7 +77,7 @@ class MethodController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
